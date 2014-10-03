@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+               applicationComplete="init()">
+    <fx:Script><![CDATA[
+        private var fractal:Fractal;
+        private var mappingIndex:int = 0;
+        private var panAmount:int = 50;
+        private var _maxIteractions:int = 250;
+
+        private var mappingModes:Array = [
+            {mode: 'SmoothMapping', bailout: 64, bailoutType: 'standard', c: SmoothMapping},
+            {mode: 'ShelfMapping', bailout: 16, bailoutType: 'standard', c: ShelfMapping},
+            {mode: 'ShelfMapping', bailout: 16, bailoutType: 'spiky', c: ShelfMapping},
+            {mode: 'ShelfMapping', bailout: 16, bailoutType: 'puffy', c: ShelfMapping},
+            {mode: 'Decomposition', bailout: 128, bailoutType: 'standard', c: Decomposition}
+        ];
+
+        private function init(e:Event = null):void {
+            if (stage.stageWidth) {
+                stage.addEventListener(Event.RESIZE, resizeListener);
+                var bmpd:BitmapData = new BitmapData(stage.stageWidth, stage.stageHeight, false, 0xFF000000);
+                var fractalBitmap:FractalBitmap = new Mandelbrot(bmpd);
+                fractal = new Fractal(fractalBitmap);
+                addElement(fractal);
+                setMapping();
+            }
+        }
+
+        private function resizeListener(e:Event):void {
+            if (e) fractal.resize(stage.stageWidth, stage.stageHeight);
+        }
+
+
+        private function setMapping():void {
+            var m:Object = mappingModes[mappingIndex];
+            var MappingReference:Class = getDefinitionByName(m.mode) as Class;
+            var mapping:Mapping = new MappingReference();
+
+            fractal.activeLayer.mapping = mapping;
+            fractal.activeLayer.bailout = m.bailout;
+            fractal.activeLayer.bailoutType = m.bailoutType;
+
+            mappingIndex++;
+            if (mappingIndex == mappingModes.length) mappingIndex = 0;
+            fractal.render();
+        }
+        ]]></fx:Script>
+</s:Application>
